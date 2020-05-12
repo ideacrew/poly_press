@@ -25,7 +25,7 @@ module PolyPress
 
   class Document < Dry::Struct
 
-    attribute :document
+    attribute :document, Types::String
 
   end
 

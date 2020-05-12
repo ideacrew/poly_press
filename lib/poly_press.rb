@@ -15,6 +15,8 @@ require 'poly_press/option'
 require 'poly_press/template'
 require 'poly_press/formatters'
 
+require 'poly_press/serializers/base_struct'
+
 
 module PolyPress
   class Error < StandardError; end

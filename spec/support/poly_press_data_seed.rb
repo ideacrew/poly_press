@@ -37,16 +37,16 @@ module PolyPressDataSeed
     ]
   end
 
-  def x_files_array
-    RecordArrayStruct.new(records: x_files_rows)
+  def x_files_array_struct
+    RecordArrayStruct.new(list: x_files_rows)
   end
 
-  def x_files_array_with_header
-    RecordArrayStruct.new(header: x_files_header, records: x_files_rows)
+  def x_files_array_with_header_struct
+    RecordArrayStruct.new(header: x_files_header, list: x_files_rows)
   end
 
-  def x_files_hash
-    RecordHashStruct.new(records: x_files_hash)
+  def x_files_hash_struct
+    RecordHashStruct.new(list: x_files_hash)
   end
 
 end

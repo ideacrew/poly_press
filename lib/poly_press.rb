@@ -1,5 +1,6 @@
 require "poly_press/version"
 
+require 'i18n'
 require 'dry-struct'
 require 'dry/validation'
 require 'dry/monads'
@@ -19,6 +20,10 @@ require 'poly_press/serializers/base_struct'
 
 
 module PolyPress
+
+  I18n.load_path << Dir[File.expand_path("config/locales") + "/*.yml"]
+  I18n.default_locale = :en
+
   class Error < StandardError; end
   # Your code goes here...
 end

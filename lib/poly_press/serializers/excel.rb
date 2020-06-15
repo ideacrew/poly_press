@@ -74,13 +74,13 @@ module PolyPress
       def populate_cells(worksheet, data, feature, derived_features)
 
         feature.settings.each do |setting|
+          value = fetch_value(setting.key.to_s, data)
 
-          if value = fetch_value(setting.key.to_s, data)
-
+          if value.to_s.present?
           	value = parse_dates(value)
 
           	if setting.item.is_a?(Hash)
-          	   setting_location = setting.item
+			   setting_location = setting.item
       	    else
       	  	   derived_input_keys = setting.item.split('.')
       	  	   derived_feature  = derived_features.detect{|feature| feature.item == derived_input_keys[0].to_sym }

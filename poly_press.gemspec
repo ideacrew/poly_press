@@ -33,7 +33,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'dry-struct',                 '~> 1.0'
   spec.add_dependency 'dry-monads',                 '~> 1.2'
   spec.add_dependency 'dry-matcher',                '~> 0.7'
-
+  spec.add_dependency 'rubyXL',                     '~> 3.4', '>= 3.4.14'
+  
   # spec.add_dependency 'rails',                      '>= 6.0'
 
   spec.add_development_dependency "bundler",        "~> 2.0"

@@ -66,47 +66,40 @@ module PolyPress
 
             page_group_data.each do |page_data|
               worksheet = workbook[worksheet_index]
-
               derived_features = features.select{|feature| DERIVED_INPUT_KINDS.include?(feature.item.to_s) }
               cell_features = features.select{|feature| feature.item == :cells}
-              cell_features.each do |feature|
-                if matched = feature.key.to_s.match(/^#{form_name}_(.*)$/)
-                  feature_data = data.send(matched[1]) rescue data
-                end
-                worksheet = populate_cells(worksheet, feature_data || data, feature, derived_features)
-              end
-
+              worksheet = process_cell_features(worksheet, cell_features, data, form_name, derived_features)
               worksheet = process_page_group(worksheet, page_data || data, feature, derived_features, form_name)
               worksheet_index += 1
             end
             workbook.worksheets.delete(workbook["OSHA Form 300 (#{worksheet_index})"])
           else
             worksheet = workbook[index]
-
             cell_features = features.select{|feature| feature.item == :cells}
-
             derived_features = features.select{|feature| DERIVED_INPUT_KINDS.include?(feature.item.to_s) }
-
-            cell_features.each do |feature|
-              if matched = feature.key.to_s.match(/^#{form_name}_(.*)$/)
-                feature_data = data.send(matched[1]) rescue data
-              end
-              worksheet = populate_cells(worksheet, feature_data || data, feature, derived_features)
-            end
+            worksheet = process_cell_features(worksheet, cell_features, data, form_name, derived_features)
           end
         end
 
-
-        file = workbook.write('tmp/form_301_test.xlsx')
+        file = workbook.write("tmp/#{template.to_s.split(/\//)[-1]}")
 
         Success(file)
       end
 
-      def populate_cells(worksheet, data, feature, derived_features)
+      def process_cell_features(worksheet, cell_features, data, form_name, derived_features)
+        cell_features.each do |feature|
+          if matched = feature.key.to_s.match(/^#{form_name}_(.*)$/)
+            feature_data = data.send(matched[1]) rescue data
+          end
+          worksheet = populate_cells(worksheet, feature_data || data, feature, derived_features)
+        end
+        worksheet
+      end
+
+      def populate_cells(worksheet, data, feature, derived_features, begin_index = nil)
+
         feature.settings.each do |setting|
           value = fetch_value(setting.key.to_s, data)
-
-          puts "---#{setting.key} #{value}"
 
           if value.to_s.present?
             value = parse_dates(value)
@@ -125,7 +118,7 @@ module PolyPress
 
             points = setting_location[:cell]
 
-            worksheet.sheet_data[points[0]][points[1]].change_contents(value)
+            worksheet.sheet_data[begin_index || points[0]][points[1]].change_contents(value)
           end
         end
 
@@ -146,39 +139,7 @@ module PolyPress
             row_feature = @registry[section_feature.setting(:row).item]
 
             rows.each do |row|
-              row_feature.settings.each do |setting|
-                puts "-----#{setting.key} ---#{setting.item}"
-                value = fetch_value(setting.key.to_s, row)
-
-                if value.to_s.present?
-                  value = parse_dates(value)
-
-                  if setting.item.is_a?(Hash)
-                    setting_location = setting.item
-                  else
-                    derived_input_keys = setting.item.split('.')
-                    derived_feature  = derived_features.detect{|feature| feature.item == derived_input_keys[0].to_sym }
-                    setting = derived_feature.setting(derived_input_keys[1..-1].join('.'))
-                    setting_location = setting.item[(boolean?(value) ? value : value.to_sym)]
-                    if derived_feature.item == :checkboxes
-                      value = 'X'
-                    end
-                  end
-
-                  points = setting_location[:cell]
-
-                  worksheet.sheet_data[begin_index][points[1]].change_contents(value)
-                end
-
-                # if value.to_s.present?
-                #   value = parse_dates(value)
-                #   points = setting.item[:cell]
-                #   worksheet.sheet_data[begin_index][points[1]].change_contents(value)
-                # end
-
-
-              end
-
+              worksheet = populate_cells(worksheet, row, row_feature, derived_features, begin_index)
               begin_index += 1
             end
           end
@@ -210,7 +171,6 @@ module PolyPress
           value
         end
       end
-
     end
   end
 end

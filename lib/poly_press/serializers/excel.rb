@@ -8,8 +8,8 @@ module PolyPress
       send(:include, Dry::Monads[:result, :do])
       send(:include, Dry::Monads[:try])
 
-      DATA_FEATURE_KEYS = %w(sheet page_group rows row cells checkboxes)
-      DERIVED_INPUT_KINDS = %w(checkboxes)
+      DATA_FEATURE_KEYS = %w(sheet page_group rows row cells checkboxes split_fields)
+      DERIVED_INPUT_KINDS = %w(checkboxes split_fields)
 
 
       # @param[Dry::Struct] data (required)
@@ -110,14 +110,26 @@ module PolyPress
               derived_input_keys = setting.item.split('.')
               derived_feature  = derived_features.detect{|feature| feature.item == derived_input_keys[0].to_sym }
               setting = derived_feature.setting(derived_input_keys[1..-1].join('.'))
-              setting_location = setting.item[(boolean?(value) ? value : value.to_sym)]
-              if derived_feature.item == :checkboxes
-                value = 'X'
+              derived_feature_type = derived_feature.item
+
+              if derived_feature_type == :split_fields
+                value = data.send(derived_input_keys[-1])
+                cells = setting.item[:cells]
+
+                cells[(cells.length - value.length)..-1].each_with_index do |points, index|
+                  worksheet.sheet_data[points[0]][points[1]].change_contents(value[index])
+                end
+                next
+              else
+                setting_location = setting.item[(boolean?(value) ? value : value.to_sym)]
+
+                if derived_feature_type == :checkboxes
+                  value = 'X'
+                end
               end
             end
 
             points = setting_location[:cell]
-
             worksheet.sheet_data[begin_index || points[0]][points[1]].change_contents(value)
           end
         end

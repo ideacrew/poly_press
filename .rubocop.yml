@@ -4,8 +4,8 @@ AllCops:
   SuggestExtensions: false
   NewCops: enable
   Exclude:
-    - bin/**
-    - vendor/**
+    - "bin/**/*"
+    - "vendor/**/*"
 
 Layout/CommentIndentation:
   Enabled: true
